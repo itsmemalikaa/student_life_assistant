@@ -1,7 +1,7 @@
 # Student Life Assistant — Versi Malika
 
 **Mobile Programming — Application Milestone I (UTS)**
-Malika Larasati Dian Rurinda • NIM 32602500037 • UNISSULA
+Malika Larasati  • NIM 32602500037 • UNISSULA
 
 ## Problem Statement
 
