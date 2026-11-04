@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../state/account_controller.dart';
 import '../state/preferences_controller.dart';
 import '../state/schedule_controller.dart';
 import '../state/task_controller.dart';
@@ -19,12 +20,16 @@ class MainShell extends StatefulWidget {
     required this.finance,
     required this.preferences,
     required this.schedules,
+    required this.accounts,
+    required this.onSwitchUser,
   });
 
   final TaskController tasks;
   final TransactionController finance;
   final PreferencesController preferences;
   final ScheduleController schedules;
+  final AccountController accounts;
+  final VoidCallback onSwitchUser;
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -49,6 +54,8 @@ class _MainShellState extends State<MainShell> {
         tasks: widget.tasks,
         finance: widget.finance,
         preferences: widget.preferences,
+        accounts: widget.accounts,
+        onSwitchUser: widget.onSwitchUser,
         onSelectTab: _select,
       ),
       TaskScreen(controller: widget.tasks, preferences: widget.preferences),

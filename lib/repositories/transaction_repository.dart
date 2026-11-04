@@ -4,11 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/sample_data.dart';
 import '../models/transaction.dart';
+import 'storage_scope.dart';
 
 /// Repository = lapisan yang menyembunyikan detail penyimpanan lokal.
 /// UI tidak perlu tahu data disimpan di shared_preferences sebagai JSON.
 class TransactionRepository {
-  static const _storageKey = 'transactions.v1';
+  // Key diberi awalan sesuai pengguna aktif (lihat StorageScope).
+  String get _storageKey => StorageScope.key('transactions.v1');
 
   /// READ: membaca semua transaksi dari penyimpanan lokal (asynchronous).
   Future<List<Transaction>> loadAll() async {

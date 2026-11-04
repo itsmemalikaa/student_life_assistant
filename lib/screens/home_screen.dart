@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../logic/task_logic.dart';
 import '../models/task_item.dart';
+import '../state/account_controller.dart';
 import '../state/preferences_controller.dart';
 import '../state/task_controller.dart';
 import '../state/transaction_controller.dart';
@@ -25,12 +26,16 @@ class HomeScreen extends StatelessWidget {
     required this.tasks,
     required this.finance,
     required this.preferences,
+    required this.accounts,
+    required this.onSwitchUser,
     required this.onSelectTab,
   });
 
   final TaskController tasks;
   final TransactionController finance;
   final PreferencesController preferences;
+  final AccountController accounts;
+  final VoidCallback onSwitchUser; // keluar & ganti pengguna
   final ValueChanged<int> onSelectTab; // pindah tab di navigasi bawah
 
   void _push(BuildContext context, Widget screen) {
@@ -147,7 +152,12 @@ class HomeScreen extends StatelessWidget {
           customBorder: const CircleBorder(),
           onTap: () => _push(
             context,
-            ProfileScreen(preferences: preferences, tasks: tasks),
+            ProfileScreen(
+            preferences: preferences,
+            tasks: tasks,
+            accounts: accounts,
+            onSwitchUser: onSwitchUser,
+          ),
           ),
           child: CircleAvatar(
             radius: 24,
@@ -326,7 +336,12 @@ class HomeScreen extends StatelessWidget {
         foreground: Colors.white,
         onTap: () => _push(
           context,
-          ProfileScreen(preferences: preferences, tasks: tasks),
+          ProfileScreen(
+            preferences: preferences,
+            tasks: tasks,
+            accounts: accounts,
+            onSwitchUser: onSwitchUser,
+          ),
         ),
       ),
     ];

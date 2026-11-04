@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../state/preferences_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/decorations.dart';
 import '../widgets/shapes.dart';
 
-/// Halaman perkenalan yang muncul saat aplikasi pertama kali dibuka
-/// di sebuah perangkat. Nama disimpan lokal, jadi setiap pengguna
-/// (setiap perangkat/browser) punya nama dan datanya sendiri.
+/// Halaman perkenalan (pendaftaran pengguna baru).
+/// Kalau nama yang diketik sudah pernah terdaftar di perangkat ini,
+/// pengguna langsung masuk ke datanya yang lama.
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key, required this.preferences});
+  const OnboardingScreen({super.key, required this.onSubmit, this.onBack});
 
-  final PreferencesController preferences;
+  final Future<void> Function(String name) onSubmit;
+  final VoidCallback? onBack; // muncul jika sudah ada pengguna lain
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -20,6 +20,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -29,20 +30,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _start() async {
     if (!_formKey.currentState!.validate()) return;
-    // Setelah nama tersimpan, aplikasi otomatis pindah ke beranda
-    // (main.dart mendengarkan perubahan preferensi).
-    await widget.preferences.save(
-      widget.preferences.value.copyWith(
-        displayName: _nameController.text.trim(),
-      ),
-    );
+    setState(() => _isSaving = true);
+    await widget.onSubmit(_nameController.text.trim());
+    if (mounted) setState(() => _isSaving = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isSaving = widget.preferences.isSaving;
-
     return Scaffold(
+      appBar: widget.onBack == null
+          ? null
+          : AppBar(
+              leading: IconButton(
+                tooltip: 'Kembali',
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: widget.onBack,
+              ),
+            ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -53,26 +57,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    const SizedBox(
-                      height: 120,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        alignment: Alignment.center,
-                        children: [
-                          Sticker('flower', size: 96, floatDistance: 6),
-                          Positioned(
-                            left: 40,
-                            top: 0,
-                            child: Sticker('sparkle', size: 40, angle: -0.2),
-                          ),
-                          Positioned(
-                            right: 40,
-                            bottom: 0,
-                            child: Sticker('heart', size: 44, angle: 0.3),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const _FlowerCluster(),
                     const SizedBox(height: 20),
                     const Text(
                       'Hai, kenalan dulu yuk!',
@@ -89,8 +74,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     const Squiggle(),
                     const SizedBox(height: 12),
                     const Text(
-                      'Siapa nama kamu? Nama ini cuma disimpan '
-                      'di perangkat ini.',
+                      'Siapa nama kamu? Kalau namamu sudah pernah dipakai '
+                      'di perangkat ini, datamu akan langsung muncul lagi.',
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
@@ -113,8 +98,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        onPressed: isSaving ? null : _start,
-                        child: Text(isSaving ? 'Menyimpan...' : 'Mulai'),
+                        onPressed: _isSaving ? null : _start,
+                        child: Text(_isSaving ? 'Menyiapkan...' : 'Mulai'),
                       ),
                     ),
                   ],
@@ -123,6 +108,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Hiasan bunga di atas halaman perkenalan & sambutan.
+class _FlowerCluster extends StatelessWidget {
+  const _FlowerCluster();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 120,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Sticker('flower', size: 96, floatDistance: 6),
+          Positioned(
+            left: 40,
+            top: 0,
+            child: Sticker('sparkle', size: 40, angle: -0.2),
+          ),
+          Positioned(
+            right: 40,
+            bottom: 0,
+            child: Sticker('heart', size: 44, angle: 0.3),
+          ),
+        ],
       ),
     );
   }

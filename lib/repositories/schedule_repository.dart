@@ -4,10 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/sample_data.dart';
 import '../models/schedule_item.dart';
+import 'storage_scope.dart';
 
 /// Menyimpan daftar jadwal sebagai JSON string di shared_preferences.
 class ScheduleRepository {
-  static const _storageKey = 'schedules.v1';
+  // Key diberi awalan sesuai pengguna aktif (lihat StorageScope).
+  String get _storageKey => StorageScope.key('schedules.v1');
 
   Future<List<ScheduleItem>> loadAll() async {
     final prefs = await SharedPreferences.getInstance();

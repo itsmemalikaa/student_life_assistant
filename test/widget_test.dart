@@ -9,8 +9,26 @@ import 'package:student_life_assistant/models/task_item.dart';
 import 'package:student_life_assistant/utils/formatters.dart';
 
 void main() {
-  testWidgets('beranda menampilkan menu dan navigasi bawah', (tester) async {
-    // Nama sudah tersimpan -> aplikasi langsung membuka beranda.
+  Future<void> settle(WidgetTester tester) async {
+    // Beberapa frame agar proses async (membaca penyimpanan) selesai.
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+  }
+
+  testWidgets('pertama kali dibuka menampilkan halaman perkenalan',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const StudentLifeAssistantApp());
+    await settle(tester);
+
+    expect(find.text('Hai, kenalan dulu yuk!'), findsOneWidget);
+    expect(find.text('Mulai'), findsOneWidget);
+  });
+
+  testWidgets('pengguna lama disambut, lalu masuk ke beranda',
+      (tester) async {
+    // Data lama dengan nama Malika -> otomatis jadi akun pertama.
     SharedPreferences.setMockInitialValues({'profile.display_name': 'Malika'});
     // Layar uji dibuat tinggi supaya seluruh isi beranda ikut dibangun
     // (ListView hanya membangun bagian yang terlihat di layar).
@@ -19,26 +37,19 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(const StudentLifeAssistantApp());
-    await tester.pump();
-    await tester.pump();
+    await settle(tester);
+
+    expect(find.text('Halo, Malika!'), findsOneWidget);
+    expect(find.text('Ganti nama'), findsOneWidget);
+
+    await tester.tap(find.text('Masuk'));
+    await settle(tester);
 
     expect(find.text('Menu cepat'), findsOneWidget);
     expect(find.text('Tugas Eksternal'), findsOneWidget);
-    expect(find.text('Malika'), findsOneWidget);
     for (var i = 0; i < 4; i++) {
       expect(find.byKey(ValueKey('nav-$i')), findsOneWidget);
     }
-  });
-
-  testWidgets('pertama kali dibuka menampilkan halaman perkenalan',
-      (tester) async {
-    SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(const StudentLifeAssistantApp());
-    await tester.pump();
-    await tester.pump();
-
-    expect(find.text('Hai, kenalan dulu yuk!'), findsOneWidget);
-    expect(find.text('Mulai'), findsOneWidget);
   });
 
   group('Logika rekomendasi tugas (Bab 2)', () {

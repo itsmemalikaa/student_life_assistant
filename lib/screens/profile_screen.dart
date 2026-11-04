@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_preferences.dart';
+import '../state/account_controller.dart';
 import '../state/preferences_controller.dart';
 import '../state/task_controller.dart';
 import '../widgets/state_views.dart';
@@ -10,10 +11,14 @@ class ProfileScreen extends StatelessWidget {
     super.key,
     required this.preferences,
     required this.tasks,
+    required this.accounts,
+    required this.onSwitchUser,
   });
 
   final PreferencesController preferences;
   final TaskController tasks;
+  final AccountController accounts;
+  final VoidCallback onSwitchUser;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +42,8 @@ class ProfileScreen extends StatelessWidget {
               key: ObjectKey(preferences.value),
               preferences: preferences,
               tasks: tasks,
+              accounts: accounts,
+              onSwitchUser: onSwitchUser,
             );
           },
         ),
@@ -50,10 +57,14 @@ class _ProfileForm extends StatefulWidget {
     super.key,
     required this.preferences,
     required this.tasks,
+    required this.accounts,
+    required this.onSwitchUser,
   });
 
   final PreferencesController preferences;
   final TaskController tasks;
+  final AccountController accounts;
+  final VoidCallback onSwitchUser;
 
   @override
   State<_ProfileForm> createState() => _ProfileFormState();
@@ -82,9 +93,15 @@ class _ProfileFormState extends State<_ProfileForm> {
     FocusScope.of(context).unfocus();
 
     final messenger = ScaffoldMessenger.of(context);
+    final newName = _nameController.text.trim();
     final ok = await widget.preferences.save(
-      _current.copyWith(displayName: _nameController.text.trim()),
+      _current.copyWith(displayName: newName),
     );
+    // Nama akun ikut diganti supaya muncul di halaman sambutan.
+    final account = widget.accounts.current;
+    if (ok && account != null) {
+      await widget.accounts.rename(account.id, newName);
+    }
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -210,6 +227,17 @@ class _ProfileFormState extends State<_ProfileForm> {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  // Tutup halaman Profil dulu, lalu kembali ke pemilihan
+                  // pengguna. Data milik akun ini tetap tersimpan.
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  widget.onSwitchUser();
+                },
+                icon: const Icon(Icons.switch_account_rounded),
+                label: const Text('Ganti pengguna'),
               ),
             ],
           ),

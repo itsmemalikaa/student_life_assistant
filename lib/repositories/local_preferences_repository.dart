@@ -1,12 +1,14 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_preferences.dart';
+import 'storage_scope.dart';
 
 /// Repository: menyembunyikan detail baca/tulis local storage dari UI.
 class LocalPreferencesRepository {
-  static const _displayNameKey = 'profile.display_name';
-  static const _showCompletedTasksKey = 'tasks.show_completed';
-  static const _darkModeKey = 'theme.dark_mode';
+  // Key diberi awalan sesuai pengguna aktif (lihat StorageScope).
+  String get _displayNameKey => StorageScope.key('profile.display_name');
+  String get _showCompletedTasksKey => StorageScope.key('tasks.show_completed');
+  String get _darkModeKey => StorageScope.key('theme.dark_mode');
 
   Future<UserPreferences> load() async {
     final prefs = await SharedPreferences.getInstance();

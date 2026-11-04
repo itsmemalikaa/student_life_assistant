@@ -4,10 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/sample_data.dart';
 import '../models/task_item.dart';
+import 'storage_scope.dart';
 
 /// Menyimpan daftar tugas sebagai JSON string di shared_preferences.
 class TaskRepository {
-  static const _storageKey = 'tasks.v1';
+  // Key diberi awalan sesuai pengguna aktif (lihat StorageScope).
+  String get _storageKey => StorageScope.key('tasks.v1');
 
   Future<List<TaskItem>> loadAll() async {
     final prefs = await SharedPreferences.getInstance();
