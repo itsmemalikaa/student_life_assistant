@@ -7,7 +7,7 @@ class UserPreferences {
   });
 
   const UserPreferences.defaults()
-      : displayName = 'Malika',
+      : displayName = '', // kosong = belum perkenalan
         showCompletedTasks = true,
         isDarkMode = false;
 

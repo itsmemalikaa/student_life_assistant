@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'screens/main_shell.dart';
+import 'screens/onboarding_screen.dart';
 import 'state/preferences_controller.dart';
 import 'state/schedule_controller.dart';
 import 'state/task_controller.dart';
 import 'state/transaction_controller.dart';
 import 'theme/app_theme.dart';
 import 'widgets/gradient_background.dart';
+import 'widgets/state_views.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,14 +67,26 @@ class _StudentLifeAssistantAppState extends State<StudentLifeAssistantApp> {
           themeMode: _preferences.value.isDarkMode
               ? ThemeMode.dark
               : ThemeMode.light,
-          home: MainShell(
-            tasks: _tasks,
-            finance: _finance,
-            preferences: _preferences,
-            schedules: _schedules,
-          ),
+          home: _buildHome(),
         );
       },
+    );
+  }
+
+  /// Pertama kali dibuka (nama belum ada) -> halaman perkenalan.
+  /// Sudah ada nama -> langsung ke beranda.
+  Widget _buildHome() {
+    if (_preferences.isLoading) {
+      return const Scaffold(body: LoadingView(message: 'Menyiapkan...'));
+    }
+    if (_preferences.value.displayName.isEmpty) {
+      return OnboardingScreen(preferences: _preferences);
+    }
+    return MainShell(
+      tasks: _tasks,
+      finance: _finance,
+      preferences: _preferences,
+      schedules: _schedules,
     );
   }
 }

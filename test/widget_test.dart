@@ -10,7 +10,8 @@ import 'package:student_life_assistant/utils/formatters.dart';
 
 void main() {
   testWidgets('beranda menampilkan menu dan navigasi bawah', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    // Nama sudah tersimpan -> aplikasi langsung membuka beranda.
+    SharedPreferences.setMockInitialValues({'profile.display_name': 'Malika'});
     // Layar uji dibuat tinggi supaya seluruh isi beranda ikut dibangun
     // (ListView hanya membangun bagian yang terlihat di layar).
     tester.view.physicalSize = const Size(800, 3000);
@@ -19,6 +20,7 @@ void main() {
 
     await tester.pumpWidget(const StudentLifeAssistantApp());
     await tester.pump();
+    await tester.pump();
 
     expect(find.text('Menu cepat'), findsOneWidget);
     expect(find.text('Tugas Eksternal'), findsOneWidget);
@@ -26,6 +28,17 @@ void main() {
     for (var i = 0; i < 4; i++) {
       expect(find.byKey(ValueKey('nav-$i')), findsOneWidget);
     }
+  });
+
+  testWidgets('pertama kali dibuka menampilkan halaman perkenalan',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const StudentLifeAssistantApp());
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Hai, kenalan dulu yuk!'), findsOneWidget);
+    expect(find.text('Mulai'), findsOneWidget);
   });
 
   group('Logika rekomendasi tugas (Bab 2)', () {
