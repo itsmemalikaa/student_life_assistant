@@ -40,6 +40,18 @@ class TransactionController extends ChangeNotifier {
 
   int get balance => totalIncome - totalExpense;
 
+  /// Total pengeluaran per kategori, diurutkan dari yang terbesar.
+  /// Dipakai untuk diagram lingkaran di halaman Keuangan.
+  Map<String, int> get expenseByCategory {
+    final totals = <String, int>{};
+    for (final t in _items.where((t) => !t.isIncome)) {
+      totals[t.category] = (totals[t.category] ?? 0) + t.amount;
+    }
+    final sorted = totals.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return Map.fromEntries(sorted);
+  }
+
   int get expenseThisMonth {
     final now = DateTime.now();
     return _items

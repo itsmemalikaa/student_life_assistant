@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../models/transaction.dart';
 import '../../state/transaction_controller.dart';
+import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/expense_donut.dart';
+import '../../widgets/shapes.dart';
 import '../../widgets/state_views.dart';
 import '../../widgets/summary_card.dart';
 import '../../widgets/transaction_tile.dart';
@@ -80,30 +83,31 @@ class _FinanceScreenState extends State<FinanceScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colors.primary,
-                borderRadius: BorderRadius.circular(20),
-              ),
+            ClipPath(
+              clipper: const ScallopClipper(radius: 10),
+              child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 34),
+              color: AppColors.wine,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Total Saldo', style: TextStyle(color: colors.onPrimary)),
+                  const Text('Total Saldo', style: TextStyle(color: AppColors.rose)),
                   const SizedBox(height: 4),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
                       formatRupiah(controller.balance),
-                      style: TextStyle(
-                        color: colors.onPrimary,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                      style: const TextStyle(
+                        color: AppColors.cream,
+                        fontFamily: AppFonts.title,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
+            ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -125,6 +129,35 @@ class _FinanceScreenState extends State<FinanceScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            // Diagram lingkaran pengeluaran per kategori
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.donut_large_rounded,
+                            color: AppColors.wine),
+                        SizedBox(width: 8),
+                        Text(
+                          'Pengeluaran per kategori',
+                          style: TextStyle(
+                            fontFamily: AppFonts.title,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ExpenseDonutChart(data: controller.expenseByCategory),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(

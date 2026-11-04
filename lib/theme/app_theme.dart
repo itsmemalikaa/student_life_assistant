@@ -1,60 +1,71 @@
 import 'package:flutter/material.dart';
 
-/// Palet warna aplikasi (cherry, blueberry, limeade, strawberry, raspberry).
+import 'page_transitions.dart';
+
+/// Palet warna dominan pink ala "soft clay studio": lembut dan ceria.
 /// Semua warna dikumpulkan di satu tempat supaya mudah diganti.
 class AppColors {
-  static const cherry = Color(0xFFDB1374);
-  static const blueberry = Color(0xFFB9C9E7);
-  static const limeade = Color(0xFFDBE586);
-  static const strawberry = Color(0xFFEFC0DA);
-  static const raspberry = Color(0xFF991E5A);
+  static const wine = Color(0xFFD94680); // pink utama (tombol, tab aktif)
+  static const wineDark = Color(0xFFA82A5E); // pink raspberry, judul
+  static const rose = Color(0xFFF8C8DA); // pink lembut
+  static const mustard = Color(0xFFF6D47A); // kuning lembut (aksen)
+  static const sage = Color(0xFFBFD8B5); // hijau sage (aksen)
+  static const coral = Color(0xFFF2849E); // pink coral
 
-  // Warna pendukung (turunan dari palet).
-  static const blush = Color(0xFFFFF5F9); // latar belakang halaman
-  static const ink = Color(0xFF3A1027); // teks gelap bernuansa raspberry
-  static const navy = Color(0xFF26355C); // teks di atas blueberry
-  static const olive = Color(0xFF4A5214); // teks di atas limeade
+  // Warna pendukung
+  static const cream = Color(0xFFFFF0F5); // latar belakang blush pink
+  static const paper = Color(0xFFFFF8FB); // warna kartu
+  static const ink = Color(0xFF4A1830); // teks gelap (plum)
+  static const forest = Color(0xFF3E5B3A); // teks di atas sage
+  static const cocoa = Color(0xFF7A5512); // teks di atas kuning
   static const white15 = Color(0x26FFFFFF); // putih transparan 15%
   static const white30 = Color(0x4DFFFFFF); // putih transparan 30%
+}
+
+/// Font yang dipakai aplikasi (dibundel di assets/fonts).
+class AppFonts {
+  static const body = 'Nunito'; // teks biasa, bulat & mudah dibaca
+  static const title = 'Baloo2'; // judul tebal, bulat & ceria
+  static const script = 'DancingScript'; // tulisan sambung untuk nama & pesan
 }
 
 class AppTheme {
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.cherry,
+      seedColor: AppColors.wine,
     ).copyWith(
-      primary: AppColors.cherry,
+      primary: AppColors.wine,
       onPrimary: Colors.white,
-      primaryContainer: AppColors.strawberry,
-      onPrimaryContainer: AppColors.raspberry,
-      secondary: AppColors.navy,
-      secondaryContainer: AppColors.blueberry,
-      onSecondaryContainer: AppColors.navy,
-      tertiary: AppColors.raspberry,
+      primaryContainer: AppColors.rose,
+      onPrimaryContainer: AppColors.wineDark,
+      secondary: AppColors.forest,
+      secondaryContainer: AppColors.sage,
+      onSecondaryContainer: AppColors.forest,
+      tertiary: AppColors.coral,
       onTertiary: Colors.white,
-      tertiaryContainer: AppColors.limeade,
-      onTertiaryContainer: AppColors.olive,
-      surface: AppColors.blush,
+      tertiaryContainer: AppColors.mustard,
+      onTertiaryContainer: AppColors.cocoa,
+      surface: AppColors.cream,
       onSurface: AppColors.ink,
     );
-    return _build(scheme, cardColor: Colors.white);
+    return _build(scheme, cardColor: AppColors.paper);
   }
 
   static ThemeData dark() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.cherry,
+      seedColor: AppColors.wine,
       brightness: Brightness.dark,
     ).copyWith(
-      primary: AppColors.strawberry,
-      onPrimary: AppColors.raspberry,
-      primaryContainer: AppColors.raspberry,
-      onPrimaryContainer: AppColors.strawberry,
-      secondaryContainer: AppColors.navy,
-      onSecondaryContainer: AppColors.blueberry,
-      tertiary: AppColors.cherry,
+      primary: AppColors.rose,
+      onPrimary: AppColors.wineDark,
+      primaryContainer: AppColors.wineDark,
+      onPrimaryContainer: AppColors.rose,
+      secondaryContainer: AppColors.forest,
+      onSecondaryContainer: AppColors.sage,
+      tertiary: AppColors.wine,
       onTertiary: Colors.white,
-      tertiaryContainer: AppColors.olive,
-      onTertiaryContainer: AppColors.limeade,
+      tertiaryContainer: AppColors.cocoa,
+      onTertiaryContainer: AppColors.mustard,
       surface: const Color(0xFF1F0A15),
     );
     return _build(scheme, cardColor: const Color(0xFF2C1120));
@@ -68,18 +79,29 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: scheme.surface,
+      fontFamily: AppFonts.body,
+      // Transparan supaya latar gradasi (GradientBackground) terlihat.
+      scaffoldBackgroundColor: Colors.transparent,
+      // Transisi halus untuk semua perpindahan halaman (push/pop).
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          for (final platform in TargetPlatform.values)
+            platform: const SmoothPageTransitionsBuilder(),
+        },
+      ),
       appBarTheme: AppBarTheme(
-        backgroundColor: scheme.surface,
+        backgroundColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleTextStyle: TextStyle(
+          fontFamily: AppFonts.title,
           color: scheme.brightness == Brightness.light
-              ? AppColors.raspberry
-              : AppColors.strawberry,
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
+              ? AppColors.wineDark
+              : AppColors.rose,
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
         ),
       ),
       cardTheme: CardThemeData(
@@ -88,7 +110,12 @@ class AppTheme {
         margin: const EdgeInsets.symmetric(vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: scheme.primaryContainer, width: 1.2),
+          side: BorderSide(
+          color: scheme.brightness == Brightness.light
+              ? const Color(0xFFF6D3E1)
+              : scheme.primaryContainer,
+          width: 1.2,
+        ),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -128,9 +155,9 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.raspberry,
+        backgroundColor: AppColors.wineDark,
         contentTextStyle: const TextStyle(color: Colors.white),
-        actionTextColor: AppColors.limeade,
+        actionTextColor: AppColors.mustard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),

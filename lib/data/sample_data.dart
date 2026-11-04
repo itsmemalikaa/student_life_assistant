@@ -3,7 +3,7 @@ import '../models/task_item.dart';
 import '../models/transaction.dart';
 
 /// Data awal. Tugas & transaksi dimasukkan ke penyimpanan lokal saat
-/// aplikasi pertama kali dibuka; jadwal bersifat statis.
+/// aplikasi pertama kali dibuka.
 class SampleData {
   static List<TaskItem> tasks() {
     final now = DateTime.now();
@@ -42,64 +42,80 @@ class SampleData {
     ];
   }
 
-  static const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+  static const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
   static const schedules = <ScheduleItem>[
     ScheduleItem(
+      id: 'sch-1',
       course: 'Mobile Programming',
       day: 'Senin',
-      time: '08.00–09.40',
+      start: '08.00',
+      end: '09.40',
       room: 'Lab Komputer 2',
       lecturer: 'Dosen Pengampu',
       note: 'Bawa laptop dengan Flutter SDK siap.',
     ),
     ScheduleItem(
+      id: 'sch-2',
       course: 'Pengolahan Citra Digital',
       day: 'Senin',
-      time: '10.00–11.40',
+      start: '10.00',
+      end: '11.40',
       room: 'Ruang 204',
       lecturer: 'Dosen Pengampu',
     ),
     ScheduleItem(
+      id: 'sch-3',
       course: 'Kriptografi',
       day: 'Selasa',
-      time: '10.00–11.40',
+      start: '10.00',
+      end: '11.40',
       room: 'Ruang 302',
       lecturer: 'Dosen Pengampu',
     ),
     ScheduleItem(
+      id: 'sch-4',
       course: 'Keamanan Komputer',
       day: 'Selasa',
-      time: '13.00–14.40',
+      start: '13.00',
+      end: '14.40',
       room: 'Ruang 301',
       lecturer: 'Dosen Pengampu',
     ),
     ScheduleItem(
+      id: 'sch-5',
       course: 'Kecerdasan Buatan',
       day: 'Rabu',
-      time: '13.00–14.40',
+      start: '13.00',
+      end: '14.40',
       room: 'Ruang 205',
       lecturer: 'Dosen Pengampu',
     ),
     ScheduleItem(
+      id: 'sch-6',
       course: 'Cloud Computing',
       day: 'Kamis',
-      time: '08.00–09.40',
+      start: '08.00',
+      end: '09.40',
       room: 'Lab Jaringan',
       lecturer: 'Dosen Pengampu',
     ),
     ScheduleItem(
+      id: 'sch-7',
       course: 'Praktikum Mobile Programming',
       day: 'Kamis',
-      time: '13.00–14.40',
+      start: '13.00',
+      end: '14.40',
       room: 'Lab Komputer 2',
       lecturer: 'Asisten Praktikum',
       note: 'Kumpulkan evidence praktikum di sinau.',
     ),
     ScheduleItem(
+      id: 'sch-8',
       course: 'Praktikum Citra Digital',
       day: 'Jumat',
-      time: '08.00–09.40',
+      start: '08.00',
+      end: '09.40',
       room: 'Lab Multimedia',
       lecturer: 'Asisten Praktikum',
     ),

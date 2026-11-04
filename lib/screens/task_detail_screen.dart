@@ -118,7 +118,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 26,
-                    fontWeight: FontWeight.w800,
+                    fontFamily: AppFonts.title,
+ fontWeight: FontWeight.w600,
                     decoration: task.isDone ? TextDecoration.lineThrough : null,
                   ),
                 ),
@@ -137,8 +138,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     _Tag(
                       text: task.isDone ? 'Selesai' : 'Belum selesai',
                       color: task.isDone
-                          ? AppColors.limeade
-                          : AppColors.blueberry,
+                          ? AppColors.mustard
+                          : AppColors.sage,
                     ),
                     _Tag(
                       text: 'Prioritas ${task.priority.label}',
@@ -146,8 +147,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                     if (task.needsAttention())
                       const _Tag(
-                        text: '⚠ Perlu perhatian',
-                        color: AppColors.strawberry,
+                        text: 'Perlu perhatian',
+                        color: AppColors.rose,
                       ),
                   ],
                 ),
@@ -155,23 +156,24 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 const Text(
                   'Detail',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                  style: TextStyle(fontSize: 22, fontFamily: AppFonts.title,
+ fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 14),
                 InfoRow(
-                  color: AppColors.strawberry,
+                  color: AppColors.rose,
                   label: 'Mata kuliah',
                   value: task.course,
                   icon: Icons.menu_book_rounded,
                 ),
                 InfoRow(
-                  color: AppColors.limeade,
+                  color: AppColors.mustard,
                   label: 'Deadline',
                   value: formatDate(task.deadline),
                   icon: Icons.event_rounded,
                 ),
                 InfoRow(
-                  color: AppColors.blueberry,
+                  color: AppColors.sage,
                   label: 'Deskripsi',
                   value: task.description ?? '-',
                   icon: Icons.notes_rounded,

@@ -1,5 +1,5 @@
 name: student_life_assistant
-description: "Student Life Assistant versi Malmal - asisten kehidupan kampus: tugas, jadwal, keuangan, dan tugas eksternal dari REST API."
+description: "Student Life Assistant versi Malika - asisten kehidupan kampus: tugas, jadwal, keuangan, dan tugas eksternal dari REST API."
 publish_to: 'none'
 
 version: 0.6.0+1
@@ -20,3 +20,31 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-400.ttf
+        - asset: assets/fonts/Nunito-600.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-700.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-800.ttf
+          weight: 800
+    - family: Baloo2
+      fonts:
+        - asset: assets/fonts/Baloo2-500.ttf
+          weight: 500
+        - asset: assets/fonts/Baloo2-600.ttf
+          weight: 600
+        - asset: assets/fonts/Baloo2-700.ttf
+          weight: 700
+        - asset: assets/fonts/Baloo2-800.ttf
+          weight: 800
+    - family: DancingScript
+      fonts:
+        - asset: assets/fonts/DancingScript-600.ttf
+          weight: 600
+        - asset: assets/fonts/DancingScript-700.ttf
+          weight: 700

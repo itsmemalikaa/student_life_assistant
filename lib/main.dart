@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'screens/main_shell.dart';
 import 'state/preferences_controller.dart';
+import 'state/schedule_controller.dart';
 import 'state/task_controller.dart';
 import 'state/transaction_controller.dart';
 import 'theme/app_theme.dart';
+import 'widgets/gradient_background.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +27,7 @@ class _StudentLifeAssistantAppState extends State<StudentLifeAssistantApp> {
   final _tasks = TaskController();
   final _finance = TransactionController();
   final _preferences = PreferencesController();
+  final _schedules = ScheduleController();
 
   @override
   void initState() {
@@ -33,6 +36,7 @@ class _StudentLifeAssistantAppState extends State<StudentLifeAssistantApp> {
     _tasks.load();
     _finance.load();
     _preferences.load();
+    _schedules.load();
   }
 
   @override
@@ -40,6 +44,7 @@ class _StudentLifeAssistantAppState extends State<StudentLifeAssistantApp> {
     _tasks.dispose();
     _finance.dispose();
     _preferences.dispose();
+    _schedules.dispose();
     super.dispose();
   }
 
@@ -54,6 +59,9 @@ class _StudentLifeAssistantAppState extends State<StudentLifeAssistantApp> {
           title: 'Student Life Assistant',
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
+          // Latar gradasi dipasang di bawah semua halaman.
+          builder: (context, child) =>
+              GradientBackground(child: child ?? const SizedBox.shrink()),
           themeMode: _preferences.value.isDarkMode
               ? ThemeMode.dark
               : ThemeMode.light,
@@ -61,6 +69,7 @@ class _StudentLifeAssistantAppState extends State<StudentLifeAssistantApp> {
             tasks: _tasks,
             finance: _finance,
             preferences: _preferences,
+            schedules: _schedules,
           ),
         );
       },

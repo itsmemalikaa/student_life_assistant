@@ -4,6 +4,7 @@ import '../logic/task_logic.dart';
 import '../models/task_item.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
+import 'bouncy.dart';
 
 /// Kartu tugas berwarna. Warna mengikuti prioritas:
 /// tinggi = strawberry, sedang = limeade, rendah = blueberry.
@@ -20,16 +21,20 @@ class TaskCard extends StatelessWidget {
   final ValueChanged<bool> onToggle;
 
   static Color colorFor(TaskItem task) {
-    if (task.isDone) return const Color(0xFFEDE6EA);
+    if (task.isDone) return const Color(0xFFF3E6EC);
     return switch (task.priority) {
-      TaskPriority.high => AppColors.strawberry,
-      TaskPriority.medium => AppColors.limeade,
-      TaskPriority.low => AppColors.blueberry,
+      TaskPriority.high => AppColors.rose,
+      TaskPriority.medium => AppColors.mustard,
+      TaskPriority.low => AppColors.sage,
     };
   }
 
   @override
   Widget build(BuildContext context) {
+    return Bouncy(scale: 0.97, child: _content(context));
+  }
+
+  Widget _content(BuildContext context) {
     const textColor = AppColors.ink;
     final urgent = task.needsAttention();
 
@@ -54,7 +59,8 @@ class TaskCard extends StatelessWidget {
                       style: TextStyle(
                         color: textColor,
                         fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                        fontFamily: AppFonts.title,
+ fontWeight: FontWeight.w600,
                         decoration:
                             task.isDone ? TextDecoration.lineThrough : null,
                       ),
@@ -106,16 +112,32 @@ class TaskCard extends StatelessWidget {
               InkWell(
                 customBorder: const CircleBorder(),
                 onTap: () => onToggle(!task.isDone),
-                child: Container(
+                // Lingkaran centang berubah warna & ikon "pop" saat diketuk.
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOut,
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: task.isDone ? AppColors.raspberry : Colors.white,
+                    color: task.isDone ? AppColors.wineDark : Colors.white,
                   ),
-                  child: Icon(
-                    Icons.check_rounded,
-                    color: task.isDone ? Colors.white : const Color(0x55991E5A),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 280),
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      scale: CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.elasticOut,
+                      ),
+                      child: child,
+                    ),
+                    child: Icon(
+                      Icons.check_rounded,
+                      key: ValueKey(task.isDone),
+                      color: task.isDone
+                          ? Colors.white
+                          : const Color(0x66D94680),
+                    ),
                   ),
                 ),
               ),

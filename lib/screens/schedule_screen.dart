@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../data/sample_data.dart';
 import '../models/schedule_item.dart';
+import '../state/schedule_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/bouncy.dart';
 import '../widgets/state_views.dart';
 import 'schedule_detail_screen.dart';
+import 'schedule_form_screen.dart';
 
 /// Warna blok jadwal bergantian.
 const _blockColors = [
-  AppColors.strawberry,
-  AppColors.limeade,
-  AppColors.blueberry,
+  AppColors.rose,
+  AppColors.mustard,
+  AppColors.sage,
 ];
 
 /// Jadwal kuliah model kalender:
@@ -18,7 +21,9 @@ const _blockColors = [
 /// - timeline blok berwarna di bawah.
 /// Layout ADAPTIF: di layar lebar (>= 840 px) detail tampil di samping.
 class ScheduleScreen extends StatefulWidget {
-  const ScheduleScreen({super.key});
+  const ScheduleScreen({super.key, required this.controller});
+
+  final ScheduleController controller;
 
   @override
   State<ScheduleScreen> createState() => _ScheduleScreenState();
@@ -32,12 +37,52 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   void initState() {
     super.initState();
     final weekday = DateTime.now().weekday; // 1 = Senin ... 7 = Minggu
-    _selectedDay = weekday <= 5 ? SampleData.days[weekday - 1] : 'Senin';
+    _selectedDay = weekday <= SampleData.days.length
+        ? SampleData.days[weekday - 1]
+        : SampleData.days.first;
   }
 
-  List<ScheduleItem> get _itemsOfDay => SampleData.schedules
-      .where((item) => item.day == _selectedDay)
-      .toList();
+  List<ScheduleItem> get _itemsOfDay =>
+      widget.controller.itemsOfDay(_selectedDay);
+
+  /// Buka form tambah jadwal, tunggu hasilnya, lalu simpan.
+  Future<void> _addSchedule() async {
+    final result = await Navigator.of(context).push<ScheduleItem>(
+      MaterialPageRoute(
+        builder: (_) => ScheduleFormScreen(initialDay: _selectedDay),
+      ),
+    );
+    if (result == null) return;
+    await widget.controller.add(result);
+    if (!mounted) return;
+    setState(() {
+      _selectedDay = result.day; // langsung tampilkan hari jadwal baru
+      _selectedIndex = widget.controller
+          .itemsOfDay(result.day)
+          .indexWhere((i) => i.id == result.id);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Jadwal "${result.course}" ditambahkan')),
+    );
+  }
+
+  Future<void> _editSchedule(ScheduleItem item) async {
+    final result = await Navigator.of(context).push<ScheduleItem>(
+      MaterialPageRoute(builder: (_) => ScheduleFormScreen(initial: item)),
+    );
+    if (result == null) return;
+    await widget.controller.update(result);
+    if (!mounted) return;
+    setState(() => _selectedDay = result.day);
+  }
+
+  Future<void> _deleteSchedule(ScheduleItem item) async {
+    final ok = await confirmDeleteSchedule(context, item);
+    if (!ok) return;
+    await widget.controller.delete(item.id);
+    if (!mounted) return;
+    setState(() => _selectedIndex = 0);
+  }
 
   /// Tanggal untuk hari ke-i minggu ini (0 = Senin).
   DateTime _dateOf(int index) {
@@ -61,9 +106,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         title: const Text('Jadwal Kuliah'),
         centerTitle: true,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addSchedule,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Jadwal'),
+      ),
       body: SafeArea(
-        child: LayoutBuilder(
+        child: ListenableBuilder(
+          listenable: widget.controller,
+          builder: (context, _) => LayoutBuilder(
           builder: (context, constraints) {
+            if (widget.controller.isLoading) {
+              return const LoadingView(message: 'Memuat jadwal...');
+            }
             final isWide = constraints.maxWidth >= 840;
             final items = _itemsOfDay;
 
@@ -77,7 +132,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
             if (!isWide) return timeline;
 
-            final safeIndex = _selectedIndex < items.length ? _selectedIndex : 0;
+            final safeIndex =
+                (_selectedIndex >= 0 && _selectedIndex < items.length)
+                    ? _selectedIndex
+                    : 0;
             final selected = items.isEmpty ? null : items[safeIndex];
 
             return Row(
@@ -96,18 +154,21 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           item: selected,
                           color:
                               _blockColors[safeIndex % _blockColors.length],
+                          onEdit: () => _editSchedule(selected),
+                          onDelete: () => _deleteSchedule(selected),
                         ),
                 ),
               ],
             );
           },
+          ),
         ),
       ),
     );
   }
 
   Widget _buildDaySelector() {
-    const shortNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'];
+    const shortNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
     return SizedBox(
       height: 84,
@@ -127,10 +188,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               duration: const Duration(milliseconds: 200),
               width: 60,
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.cherry : Colors.transparent,
+                color: isSelected ? AppColors.wine : Colors.transparent,
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(
-                  color: isSelected ? AppColors.cherry : AppColors.strawberry,
+                  color: isSelected ? AppColors.wine : AppColors.rose,
                 ),
               ),
               child: Column(
@@ -140,7 +201,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     '${_dateOf(index).day}',
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.w800,
+                      fontFamily: AppFonts.title,
+ fontWeight: FontWeight.w600,
                       color: isSelected ? Colors.white : null,
                     ),
                   ),
@@ -148,7 +210,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     shortNames[index],
                     style: TextStyle(
                       fontSize: 12,
-                      color: isSelected ? AppColors.strawberry : null,
+                      color: isSelected ? AppColors.rose : null,
                     ),
                   ),
                 ],
@@ -165,17 +227,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       return const EmptyView(
         icon: Icons.event_available_rounded,
         title: 'Tidak ada kuliah',
-        subtitle: 'Hari ini bebas, gunakan untuk mengerjakan tugas!',
+        subtitle: 'Hari ini bebas! Tekan "+ Jadwal" untuk menambah.',
       );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
         final color = _blockColors[index % _blockColors.length];
-        final startTime = item.time.split('–').first;
+        final startTime = item.start;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 14),
@@ -204,8 +266,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       // Kirim data jadwal terpilih ke halaman detail.
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) =>
-                              ScheduleDetailScreen(item: item, color: color),
+                          builder: (_) => ScheduleDetailScreen(
+                            item: item,
+                            color: color,
+                            controller: widget.controller,
+                          ),
                         ),
                       );
                     }
@@ -235,6 +300,10 @@ class _ScheduleBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Bouncy(scale: 0.97, child: _content(context));
+  }
+
+  Widget _content(BuildContext context) {
     const ink = AppColors.ink;
 
     return Material(
@@ -248,7 +317,7 @@ class _ScheduleBlock extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: isSelected ? AppColors.raspberry : Colors.transparent,
+              color: isSelected ? AppColors.wineDark : Colors.transparent,
               width: 2,
             ),
           ),
@@ -263,7 +332,8 @@ class _ScheduleBlock extends StatelessWidget {
                       style: const TextStyle(
                         color: ink,
                         fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                        fontFamily: AppFonts.title,
+ fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 8),

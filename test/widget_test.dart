@@ -4,12 +4,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_life_assistant/logic/task_logic.dart';
 import 'package:student_life_assistant/main.dart';
 import 'package:student_life_assistant/models/external_todo.dart';
+import 'package:student_life_assistant/models/schedule_item.dart';
 import 'package:student_life_assistant/models/task_item.dart';
 import 'package:student_life_assistant/utils/formatters.dart';
 
 void main() {
   testWidgets('beranda menampilkan menu dan navigasi bawah', (tester) async {
     SharedPreferences.setMockInitialValues({});
+    // Layar uji dibuat tinggi supaya seluruh isi beranda ikut dibangun
+    // (ListView hanya membangun bagian yang terlihat di layar).
+    tester.view.physicalSize = const Size(800, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(const StudentLifeAssistantApp());
     await tester.pump();
 
@@ -83,6 +90,22 @@ void main() {
       expect(restored.priority, TaskPriority.high);
       expect(restored.description, isNull);
       expect(restored.isDone, isFalse);
+    });
+
+    test('ScheduleItem toJson -> fromJson tetap sama', () {
+      const original = ScheduleItem(
+        id: 'sch-x',
+        course: 'Kriptografi',
+        day: 'Selasa',
+        start: '10.00',
+        end: '11.40',
+        room: 'Ruang 302',
+        lecturer: 'Dosen Pengampu',
+      );
+      final restored = ScheduleItem.fromJson(original.toJson());
+      expect(restored.time, '10.00–11.40');
+      expect(restored.day, 'Selasa');
+      expect(restored.note, isNull);
     });
 
     test('ExternalTodo.fromJson membaca response REST API', () {

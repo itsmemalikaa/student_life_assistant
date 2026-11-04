@@ -4,6 +4,7 @@ import '../models/task_item.dart';
 import '../state/preferences_controller.dart';
 import '../state/task_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shapes.dart';
 import '../widgets/state_views.dart';
 import '../widgets/task_card.dart';
 import 'task_detail_screen.dart';
@@ -128,7 +129,7 @@ class TaskScreen extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.only(right: 24),
                       decoration: BoxDecoration(
-                        color: AppColors.raspberry,
+                        color: AppColors.wineDark,
                         borderRadius: BorderRadius.circular(22),
                       ),
                       child: const Icon(Icons.delete_rounded,
@@ -166,16 +167,12 @@ class _ProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 12, 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26),
-        gradient: const LinearGradient(
-          colors: [AppColors.raspberry, AppColors.cherry],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+    // Kotak wine dengan pinggir bawah bergelombang.
+    return ClipPath(
+      clipper: const ScallopClipper(radius: 10),
+      child: Container(
+      padding: const EdgeInsets.fromLTRB(20, 20, 12, 30),
+      color: AppColors.wine,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -184,7 +181,8 @@ class _ProgressHeader extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontFamily: AppFonts.title,
+ fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 12),
@@ -195,23 +193,29 @@ class _ProgressHeader extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 10,
-                color: AppColors.limeade,
+                color: AppColors.mustard,
                 backgroundColor: AppColors.white30,
               ),
             ),
           ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Tampilkan tugas selesai',
-              style: TextStyle(color: Colors.white),
+          // Dibungkus Material transparan supaya efek sentuh ListTile
+          // tetap terlihat di atas kotak berwarna.
+          Material(
+            type: MaterialType.transparency,
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text(
+                'Tampilkan tugas selesai',
+                style: TextStyle(color: Colors.white),
+              ),
+              value: showCompleted,
+              activeTrackColor: AppColors.mustard,
+              onChanged: onShowCompletedChanged,
             ),
-            value: showCompleted,
-            activeTrackColor: AppColors.limeade,
-            onChanged: onShowCompletedChanged,
           ),
         ],
       ),
+    ),
     );
   }
 }

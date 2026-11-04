@@ -7,6 +7,9 @@ import '../state/task_controller.dart';
 import '../state/transaction_controller.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
+import '../widgets/bouncy.dart';
+import '../widgets/decorations.dart';
+import '../widgets/shapes.dart';
 import '../widgets/task_card.dart';
 import 'external_task_screen.dart';
 import 'finance/transaction_form_screen.dart';
@@ -14,7 +17,8 @@ import 'profile_screen.dart';
 import 'task_detail_screen.dart';
 import 'task_form_screen.dart';
 
-/// Beranda: sapaan, ringkasan tugas, menu cepat, tugas berikutnya.
+/// Beranda bergaya "soft clay studio": banner wine bergelombang,
+/// menu berbentuk lengkung, kartu coral, dan footer.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
@@ -62,21 +66,36 @@ class HomeScreen extends StatelessWidget {
                 final isWide = constraints.maxWidth >= 900;
                 final padding = isWide ? 32.0 : 20.0;
 
+                // Setiap bagian muncul berurutan (animasi stagger).
                 final left = <Widget>[
-                  _buildHeadline(context),
-                  const SizedBox(height: 24),
-                  _buildQuickMenu(context),
-                  const SizedBox(height: 24),
-                  _NextTaskCard(
-                    task: tasks.isLoading ? null : tasks.recommendation,
-                    isLoading: tasks.isLoading,
-                    onOpen: (task) => _openTask(context, task),
+                  FadeSlideIn(order: 1, child: _buildHero(context)),
+                  const SizedBox(height: 28),
+                  FadeSlideIn(
+                    order: 2,
+                    child: PostcardBanner(name: preferences.value.displayName),
                   ),
+                  const SizedBox(height: 28),
+                  FadeSlideIn(order: 3, child: _buildQuickMenu(context)),
                 ];
                 final right = <Widget>[
-                  _buildSummary(context),
-                  const SizedBox(height: 24),
-                  ..._buildOtherTasks(context),
+                  FadeSlideIn(
+                    order: 4,
+                    child: _NextTaskCard(
+                      task: tasks.isLoading ? null : tasks.recommendation,
+                      isLoading: tasks.isLoading,
+                      onOpen: (task) => _openTask(context, task),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  FadeSlideIn(order: 5, child: _buildSummary(context)),
+                  const SizedBox(height: 28),
+                  FadeSlideIn(
+                    order: 6,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: _buildOtherTasks(context),
+                    ),
+                  ),
                 ];
 
                 return Center(
@@ -85,8 +104,8 @@ class HomeScreen extends StatelessWidget {
                     child: ListView(
                       padding: EdgeInsets.fromLTRB(padding, 16, padding, 24),
                       children: [
-                        _buildHeader(context),
-                        const SizedBox(height: 24),
+                        FadeSlideIn(order: 0, child: _buildHeader(context)),
+                        const SizedBox(height: 20),
                         if (isWide)
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,9 +117,11 @@ class HomeScreen extends StatelessWidget {
                           )
                         else ...[
                           ...left,
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 28),
                           ...right,
                         ],
+                        const SizedBox(height: 32),
+                        const FadeSlideIn(order: 7, child: _Footer()),
                       ],
                     ),
                   ),
@@ -130,11 +151,15 @@ class HomeScreen extends StatelessWidget {
           ),
           child: CircleAvatar(
             radius: 24,
-            backgroundColor: AppColors.strawberry,
-            foregroundColor: AppColors.raspberry,
+            backgroundColor: AppColors.rose,
+            foregroundColor: AppColors.wineDark,
             child: Text(
               name.isEmpty ? '?' : name[0].toUpperCase(),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                fontSize: 20,
+                fontFamily: AppFonts.title,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),
@@ -150,8 +175,10 @@ class HomeScreen extends StatelessWidget {
               Text(
                 name,
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 24,
+                  fontFamily: AppFonts.script,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.wine,
                 ),
               ),
             ],
@@ -162,7 +189,7 @@ class HomeScreen extends StatelessWidget {
           onPressed: () => onSelectTab(1),
           icon: Badge(
             isLabelVisible: urgentCount > 0,
-            backgroundColor: AppColors.cherry,
+            backgroundColor: AppColors.coral,
             label: Text('$urgentCount'),
             child: const Icon(Icons.notifications_none_rounded),
           ),
@@ -179,82 +206,124 @@ class HomeScreen extends StatelessWidget {
     return 'Selamat malam';
   }
 
-  // ---------------- Judul besar ----------------
-  Widget _buildHeadline(BuildContext context) {
-    final color = Theme.of(context).colorScheme.onSurface;
+  // ---------------- Banner utama (wine, pinggir bergelombang) ----------------
+  Widget _buildHero(BuildContext context) {
     final pending = tasks.pendingCount;
 
-    final String light;
-    final String bold;
+    final String title;
+    final String subtitle;
     if (tasks.isLoading) {
-      light = 'Sebentar ya,\n';
-      bold = 'data sedang dimuat';
+      title = 'Sebentar ya...';
+      subtitle = 'Data kamu sedang disiapkan.';
     } else if (pending == 0) {
-      light = 'Semua tugas\n';
-      bold = 'sudah beres! 🎉';
+      title = 'Semua tugas beres!';
+      subtitle = 'Saatnya istirahat sebentar.';
     } else {
-      light = 'Kamu punya $pending tugas\n';
-      bold = 'yang perlu dikerjakan';
+      title = 'Kamu punya $pending tugas';
+      subtitle = 'Pelan-pelan, satu per satu pasti selesai.';
     }
 
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: light,
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w300,
-                color: color,
-                height: 1.2,
-              ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ClipPath(
+          clipper: const ScallopClipper(radius: 11),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(24, 26, 24, 40),
+            color: AppColors.wine,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontFamily: AppFonts.title,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.cream,
+                          height: 1.15,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(color: AppColors.rose),
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.mustard,
+                          foregroundColor: AppColors.ink,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          shape: const StadiumBorder(),
+                        ),
+                        onPressed: () => onSelectTab(1),
+                        child: const Text('Lihat tugasku'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 72),
+              ],
             ),
-            TextSpan(
-              text: bold,
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w800,
-                color: color,
-                height: 1.2,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        // Hiasan bunga di sisi kanan banner
+        const Positioned(
+          right: 18,
+          top: 16,
+          child: Sticker('daisy', size: 46, angle: 0.2),
+        ),
+        const Positioned(
+          right: 6,
+          bottom: 28,
+          child: Sticker('tulip', size: 74, angle: 0.12, floatDistance: 3),
+        ),
+        const Positioned(
+          right: 64,
+          bottom: 34,
+          child: Sticker('leaf', size: 40, angle: -0.3),
+        ),
+      ],
     );
   }
 
-  // ---------------- Menu cepat (lingkaran warna-warni) ----------------
+  // ---------------- Menu cepat (bentuk lengkung / arch) ----------------
   Widget _buildQuickMenu(BuildContext context) {
     final actions = [
-      _QuickAction(
+      _ArchAction(
         icon: Icons.cloud_rounded,
         label: 'Tugas Eksternal',
-        background: AppColors.blueberry,
-        foreground: AppColors.navy,
+        background: AppColors.sage,
+        foreground: AppColors.forest,
         onTap: () => _push(context, const ExternalTaskScreen()),
       ),
-      _QuickAction(
+      _ArchAction(
         icon: Icons.payments_rounded,
         label: 'Catat uang',
-        background: AppColors.limeade,
-        foreground: AppColors.olive,
+        background: AppColors.mustard,
+        foreground: AppColors.cocoa,
         onTap: () => openTransactionForm(context, finance),
       ),
-      _QuickAction(
+      _ArchAction(
         icon: Icons.calendar_month_rounded,
         label: 'Jadwal',
-        background: AppColors.strawberry,
-        foreground: AppColors.raspberry,
+        background: AppColors.rose,
+        foreground: AppColors.wineDark,
         onTap: () => onSelectTab(2),
       ),
-      _QuickAction(
+      _ArchAction(
         icon: Icons.person_rounded,
         label: 'Profil',
-        background: AppColors.blueberry,
-        foreground: AppColors.navy,
+        background: AppColors.coral,
+        foreground: Colors.white,
         onTap: () => _push(
           context,
           ProfileScreen(preferences: preferences, tasks: tasks),
@@ -265,29 +334,24 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Expanded(
-              child: Text(
-                'Menu cepat',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-              ),
-            ),
-            IconButton.filled(
-              tooltip: 'Tambah tugas',
-              onPressed: () => _addTask(context),
-              icon: const Icon(Icons.add_rounded),
-            ),
-          ],
+        SectionTitle(
+          'Menu cepat',
+          decoration: const Sticker('flower', size: 28, angle: -0.2),
+          action: IconButton.filled(
+            tooltip: 'Tambah tugas',
+            onPressed: () => _addTask(context),
+            icon: const Icon(Icons.add_rounded),
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (final action in actions) ...[
                 action,
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
               ],
             ],
           ),
@@ -303,8 +367,8 @@ class HomeScreen extends StatelessWidget {
       children: [
         Expanded(
           child: _MiniStat(
-            background: AppColors.limeade,
-            foreground: AppColors.olive,
+            background: AppColors.mustard,
+            foreground: AppColors.cocoa,
             icon: Icons.insights_rounded,
             label: 'Progres',
             value: tasks.isLoading
@@ -317,8 +381,8 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _MiniStat(
-            background: AppColors.blueberry,
-            foreground: AppColors.navy,
+            background: AppColors.sage,
+            foreground: AppColors.forest,
             icon: Icons.savings_rounded,
             label: 'Saldo',
             value: finance.isLoading ? '...' : formatRupiah(finance.balance),
@@ -338,21 +402,16 @@ class HomeScreen extends StatelessWidget {
         .toList();
 
     return [
-      Row(
-        children: [
-          const Expanded(
-            child: Text(
-              'Tugas lainnya',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-            ),
-          ),
-          TextButton(
-            onPressed: () => onSelectTab(1),
-            child: const Text('Lihat semua'),
-          ),
-        ],
+      SectionTitle(
+        'Tugas lainnya',
+        decoration: const Sticker('heart', size: 26, angle: 0.2),
+        squiggleColor: AppColors.sage,
+        action: TextButton(
+          onPressed: () => onSelectTab(1),
+          child: const Text('Lihat semua'),
+        ),
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: 12),
       if (tasks.isLoading)
         const Padding(
           padding: EdgeInsets.all(24),
@@ -361,7 +420,7 @@ class HomeScreen extends StatelessWidget {
       else if (others.isEmpty)
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
-          child: Center(child: Text('Tidak ada tugas lain. Mantap! ✨')),
+          child: Center(child: Text('Tidak ada tugas lain. Mantap!')),
         )
       else
         for (final task in others)
@@ -379,8 +438,9 @@ class HomeScreen extends StatelessWidget {
 
 // ======================================================================
 
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
+/// Tombol menu berbentuk lengkung (arch), seperti kartu produk di referensi.
+class _ArchAction extends StatelessWidget {
+  const _ArchAction({
     required this.icon,
     required this.label,
     required this.background,
@@ -396,36 +456,44 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: SizedBox(
-        width: 76,
-        child: Column(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: background,
-                shape: BoxShape.circle,
+    return Bouncy(
+      child: GestureDetector(
+        onTap: onTap,
+        child: SizedBox(
+          width: 78,
+          child: Column(
+            children: [
+              Container(
+                width: 74,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(37),
+                    bottom: Radius.circular(18),
+                  ),
+                ),
+                child: Icon(icon, color: foreground, size: 30),
               ),
-              child: Icon(icon, color: foreground, size: 28),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
+/// Kartu "Tugas berikutnya" berwarna coral dengan pinggir bawah bergelombang.
 class _NextTaskCard extends StatelessWidget {
   const _NextTaskCard({
     required this.task,
@@ -441,99 +509,6 @@ class _NextTaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final current = task;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Tugas berikutnya',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 12),
-        Stack(
-          children: [
-            // Kartu bayangan di belakang (efek bertumpuk)
-            Positioned(
-              left: 14,
-              right: 14,
-              top: 24,
-              bottom: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.raspberry,
-                  borderRadius: BorderRadius.circular(28),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: const LinearGradient(
-                    colors: [AppColors.cherry, Color(0xFFB8195F)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: _buildText(current)),
-                    const SizedBox(width: 12),
-                    Column(
-                      children: [
-                        const _Bubble(
-                          icon: Icons.lightbulb_rounded,
-                          background: AppColors.limeade,
-                          foreground: AppColors.olive,
-                        ),
-                        const SizedBox(height: 8),
-                        const _Bubble(
-                          icon: Icons.menu_book_rounded,
-                          background: AppColors.blueberry,
-                          foreground: AppColors.navy,
-                        ),
-                        const SizedBox(height: 8),
-                        const _Bubble(
-                          icon: Icons.edit_rounded,
-                          background: AppColors.strawberry,
-                          foreground: AppColors.raspberry,
-                        ),
-                        const SizedBox(height: 16),
-                        if (current != null)
-                          InkWell(
-                            customBorder: const CircleBorder(),
-                            onTap: () => onOpen(current),
-                            child: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildText(TaskItem? current) {
     final String title;
     final String subtitle;
     if (isLoading) {
@@ -550,59 +525,135 @@ class _NextTaskCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            height: 1.2,
-          ),
+        const SectionTitle(
+          'Tugas berikutnya',
+          decoration: Sticker('sparkle', size: 28, angle: 0.15),
+          squiggleColor: AppColors.mustard,
         ),
-        const SizedBox(height: 6),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            color: AppColors.strawberry,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        if (current != null) ...[
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.white15,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.schedule_rounded,
-                  size: 16,
-                  color: AppColors.limeade,
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    '${deadlineLabel(current)} • ${formatDate(current.deadline)}',
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+        const SizedBox(height: 14),
+        Bouncy(
+          child: GestureDetector(
+            onTap: current == null ? null : () => onOpen(current),
+            child: ClipPath(
+              clipper: const ScallopClipper(radius: 11),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(22, 22, 22, 38),
+                color: AppColors.coral,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontFamily: AppFonts.title,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            subtitle,
+                            style: const TextStyle(
+                              color: AppColors.cream,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (current != null) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.cream,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.schedule_rounded,
+                                    size: 16,
+                                    color: AppColors.wine,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      '${deadlineLabel(current)} • '
+                                      '${formatDate(current.deadline)}',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: AppColors.wine,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              recommendationMessage(current),
+                              style: const TextStyle(
+                                color: AppColors.cream,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Column(
+                      children: [
+                        const _Bubble(
+                          icon: Icons.lightbulb_rounded,
+                          background: AppColors.mustard,
+                          foreground: AppColors.cocoa,
+                        ),
+                        const SizedBox(height: 8),
+                        const _Bubble(
+                          icon: Icons.menu_book_rounded,
+                          background: AppColors.sage,
+                          foreground: AppColors.forest,
+                        ),
+                        const SizedBox(height: 8),
+                        const _Bubble(
+                          icon: Icons.edit_rounded,
+                          background: AppColors.rose,
+                          foreground: AppColors.wineDark,
+                        ),
+                        if (current != null) ...[
+                          const SizedBox(height: 14),
+                          Container(
+                            width: 46,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            recommendationMessage(current),
-            style: const TextStyle(color: AppColors.strawberry, fontSize: 12),
-          ),
-        ],
+        ),
       ],
     );
   }
@@ -655,57 +706,103 @@ class _MiniStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: background,
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, color: foreground, size: 20),
-                  const SizedBox(width: 6),
-                  Text(
-                    label,
+    return Bouncy(
+      child: Material(
+        color: background,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: foreground, size: 20),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: foreground,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
                     style: TextStyle(
                       color: foreground,
-                      fontWeight: FontWeight.w600,
+                      fontFamily: AppFonts.title,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (progress != null) ...[
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      color: foreground,
+                      backgroundColor: const Color(0x66FFFFFF),
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    color: foreground,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              if (progress != null) ...[
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 6,
-                    color: foreground,
-                    backgroundColor: const Color(0x66FFFFFF),
-                  ),
-                ),
               ],
-            ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Footer wine dengan pinggir atas bergelombang, seperti di referensi.
+class _Footer extends StatelessWidget {
+  const _Footer();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: const ScallopClipper(radius: 11, top: true, bottom: false),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(24, 34, 24, 26),
+        color: AppColors.wineDark,
+        child: const Column(
+          children: [
+            Squiggle(color: AppColors.rose),
+            SizedBox(height: 10),
+            Text(
+              'your assistant buddy',
+              style: TextStyle(
+                color: AppColors.cream,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 3,
+              ),
+            ),
+            SizedBox(height: 6),
+            Text(
+              'study hard, rest harder, stay cute',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.rose,
+                fontFamily: AppFonts.script,
+                  fontWeight: FontWeight.w700,
+                fontSize: 20,
+              ),
+            ),
+          ],
         ),
       ),
     );
